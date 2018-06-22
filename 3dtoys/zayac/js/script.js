@@ -2,11 +2,20 @@
 var camera;
 var renderer;
 var canvas;
+var clock;  
+var water;
 
 var x_l;
 var y_l;
 var z_l;
 
+
+var params = {
+			color: '#ffffff',
+			scale: 4,
+			flowX: 1,
+			flowY: 1
+		};
 
 function setPoint(x,y,z)
 {
@@ -31,7 +40,6 @@ function drawLine(x, y, z)
 }
 
 
-
 window.onload = function()
 {
     var width = window.innerWidth;
@@ -40,13 +48,14 @@ window.onload = function()
     canvas.setAttribute('width', width);
     canvas.setAttribute('height', height);
     renderer = new THREE.WebGLRenderer({canvas: canvas, antualias: true});
+    renderer.setPixelRatio( window.devicePixelRatio );
+    document.body.appendChild( renderer.domElement );
     renderer.setClearColor(0x552255);
-    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 5000);
     camera.position.set(75,70,750);
-    var light = new THREE.AmbientLight(0xffffff, 0.44);
+    var light = new THREE.AmbientLight(0xffffff, 1);
     
     //СЕТКА
     var grid = new THREE.GridHelper(1400, 30);
@@ -60,9 +69,9 @@ window.onload = function()
     
     //ТРАВА
     var imgGrass = new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture('src/grass.jpg')});
-    planeGrass = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), imgGrass);
+    planeGrass = new THREE.Mesh(new THREE.PlaneGeometry(2500, 2500), imgGrass);
     rotateObject(planeGrass, -90, 0, 0);
-    planeGrass.position.set(0, -50, 0);
+    planeGrass.position.set(200, -50, 200);
     scene.add(planeGrass);
     
     //ТЕЛО
@@ -111,8 +120,9 @@ window.onload = function()
     
     //УШИ
     var heartShape = new THREE.Shape();
-    heartShape.moveTo( 25, 25, 25 );
+    heartShape.moveTo( 25, 25);
     heartShape.bezierCurveTo( 100, 110, 10, 200, 0, 0 );
+    
     var mehImg = new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture('src/meh.jpg')});
     var extrudeSettings = { amount: 2, bevelEnabled: true, bevelSegments: 10, steps: 0, bevelSize: 0, bevelThickness: 2 };
     var geometry = new THREE.ExtrudeGeometry( heartShape, extrudeSettings );
@@ -127,23 +137,86 @@ window.onload = function()
     
     var pointL = new THREE.PointLight(0xff19e1, 2.3, 850);
     pointL.position.set(0,20,-120);
-    scene.add(pointL);
+    //scene.add(pointL);
     
-    var spotL = new THREE.SpotLight(0xfff287, 1);
+    var spotL = new THREE.SpotLight(0xff19e1, 2.2);
     spotL.position.set(0, 160,175);
     rotateObject(spotL, -80,0,0);
-    scene.add(spotL);
+    //scene.add(spotL);
+    
+    var group2 = new THREE.Group();
+                group2.add(sphereBody);
+                group2.add(sphereLeg1);
+                group2.add(sphereLeg2);
+                group2.add(faceMesh);
+                group2.add(sphereRuka1);
+                group2.add(sphereRuka2);
+                group2.add(uho1);
+                group2.add(uho2);
+    //group2.translateOnAxis(new THREE.Vector(1,0, 0), 100);
+    group2.scale.set(1.5, 1.5, 1.5);
+    
+    //group2.position.set(-100,20,-100);
     
     
-    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    scene.add(group2);
+    
+    
+    for (i = 1; i <= 10; i++) 
+    {
+        for (j = 1; j <= 10; j++) 
+            {
+                var group = new THREE.Group();
+                group.add(sphereBody.clone());
+                group.add(sphereLeg1.clone());
+                group.add(sphereLeg2.clone());
+                group.add(faceMesh.clone());
+                group.add(sphereRuka1.clone());
+                group.add(sphereRuka2.clone());
+                group.add(uho1.clone());
+                group.add(uho2.clone());
+                group.position.set(i*200 - 800,0,j*200 - 800);
+                group.scale.set(1,1 + (j*0.1),1);
+                scene.add(group);
+            }
+    }
+    
+     
+    
     renderer.render(scene, camera);
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    window.addEventListener( 'resize', onResize, false );
+    
+    animate();
 }
+
+
+
+function onResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
+
+		function animate() {
+			requestAnimationFrame( animate );
+			render();
+		}
+
+		function render() {
+			var delta = clock.getDelta();
+			renderer.render( scene, camera );
+}
+
 
 
 window.onmousemove = function()
 {
     renderer.render(scene, camera);
 }
+
+
+
 
 function rotateObject(object,degreeX=0, degreeY=0, degreeZ=0){
 
